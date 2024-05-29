@@ -1,0 +1,24 @@
+### Order
+POST http://localhost:8101/order
+Content-Type: application/json
+
+{
+    "orderId": "yi7o-2421-dad",
+    "status": "Order Placed"
+}
+
+
+### ALL
+POST http://localhost:8101/all
+Content-Type: application/json
+
+{
+    "order": {
+        "orderId": "yi7o-2421-dad",
+        "status": "Order Placed"
+    },
+    "media": {
+        "mediaId": "yi7o-2421-dad",
+        "status": "Media Placed"
+    }
+}

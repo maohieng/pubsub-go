@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"sync"
 
-	pubsub "ekhom.com/example/kafka/sub/pubsub"
 	"github.com/IBM/sarama"
+	"github.com/maohieng/pubsub"
 )
 
 const (

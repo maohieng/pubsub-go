@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	pubsub "ekhom.com/example/kafka/sub/pubsub"
 	"github.com/gin-gonic/gin"
+	"github.com/maohieng/pubsub"
 )
 
 const (

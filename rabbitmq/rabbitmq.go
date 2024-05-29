@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"sync"
 
-	"ekhom.com/example/kafka/sub/pubsub"
+	"github.com/maohieng/pubsub"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 

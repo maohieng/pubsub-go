@@ -9,16 +9,18 @@ import (
 	"syscall"
 	"time"
 
-	pubsub "ekhom.com/example/kafka/sub/pubsub"
-	kafka "ekhom.com/example/kafka/sub/pubsub/kafka"
-	"ekhom.com/example/kafka/sub/pubsub/rabbitmq"
 	"github.com/IBM/sarama"
+	"github.com/maohieng/pubsub"
+	"github.com/maohieng/pubsub/kafka"
+	"github.com/maohieng/pubsub/rabbitmq"
 )
 
 const (
 	consumerName = "example_pubsub_sub"
 
-	brokerUrl1         = "localhost:9092"
+	brokerUrl1 = "localhost:9092"
+	rabbitURI  = "amqp://admin:5b3H9mTVb51C@localhost:9004"
+
 	TopicMediaLog      = "media-logs"
 	TopicOrderLog      = "order-logs"
 	PartTopicMediaLog1 = 0
@@ -50,7 +52,7 @@ func main() {
 	}
 	defer kafkaClient.Close()
 
-	rabbitClient, err := rabbitmq.New("amqp://admin:5b3H9mTVb51C@localhost:9004")
+	rabbitClient, err := rabbitmq.New(rabbitURI)
 	if err != nil {
 		panic(err)
 	}

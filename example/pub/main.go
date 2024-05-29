@@ -10,16 +10,17 @@ import (
 	"syscall"
 	"time"
 
-	"ekhom.com/example/kafka/sub/example/pub/handler"
-	"ekhom.com/example/kafka/sub/pubsub"
-	"ekhom.com/example/kafka/sub/pubsub/kafka"
-	"ekhom.com/example/kafka/sub/pubsub/rabbitmq"
 	"github.com/IBM/sarama"
 	"github.com/gin-gonic/gin"
+	"github.com/maohieng/pubsub"
+	"github.com/maohieng/pubsub/example/pub/handler"
+	"github.com/maohieng/pubsub/kafka"
+	"github.com/maohieng/pubsub/rabbitmq"
 )
 
 const (
 	brokerUrl1 = "localhost:9092"
+	rabbitURI  = "amqp://admin:5b3H9mTVb51C@localhost:9004"
 )
 
 var kafkaClient pubsub.Client
@@ -63,7 +64,7 @@ func main() {
 	defer kafkaClient.Close()
 
 	// RabbitMQ
-	rbbClient, err := rabbitmq.New("amqp://admin:5b3H9mTVb51C@localhost:9004")
+	rbbClient, err := rabbitmq.New(rabbitURI)
 	if err != nil {
 		panic(err)
 	}

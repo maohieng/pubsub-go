@@ -38,8 +38,9 @@ type kafkaClient struct {
 
 	producer sarama.SyncProducer
 
-	consumer           sarama.Consumer
-	lock               sync.Mutex
+	consumer sarama.Consumer
+
+	lock               sync.RWMutex
 	partitionConsumers map[partitionKey]sarama.PartitionConsumer
 }
 
@@ -161,7 +162,9 @@ func (k *kafkaClient) Consume(ctx context.Context, load pubsub.ConLoad) (pubsub.
 
 	slog.Info("add partition consumer", "pubsub", "kafka", "method", "Consume", "load", load)
 
+	k.lock.RLock()
 	src := k.partitionConsumers[key]
+	k.lock.RUnlock()
 
 	if src == nil {
 		return nil, ErrNoPartitionConsumer

@@ -23,9 +23,6 @@ const (
 	rabbitURI  = "amqp://admin:5b3H9mTVb51C@localhost:9004"
 )
 
-var kafkaClient pubsub.Client
-var rabbitClient pubsub.Client
-
 func main() {
 	// Setup logger
 	slogHandler := slog.NewTextHandler(os.Stdout, nil)
@@ -46,6 +43,9 @@ func main() {
 
 	router.Use(loggerMiddlware())
 	router.Use(gin.Recovery())
+
+	var kafkaClient pubsub.Client
+	var rabbitClient pubsub.Client
 
 	// Connect to Kafka
 	config := sarama.NewConfig()

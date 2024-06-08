@@ -33,7 +33,7 @@ type consumerKey struct {
 type rabbitmqClient struct {
 	conn *amqp.Connection
 
-	lock      sync.Mutex
+	lock      sync.RWMutex
 	producers map[string]*amqp.Channel
 	consumers map[consumerKey]*amqp.Channel
 }
@@ -104,6 +104,9 @@ func (r *rabbitmqClient) CreateConsumer(queueName, consumerName string, config C
 func (r *rabbitmqClient) Close() (err error) {
 	err = errors.Join(err, r.conn.Close())
 
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
 	if len(r.producers) > 0 {
 		for _, chann := range r.producers {
 			err = errors.Join(err, chann.Close())
@@ -119,6 +122,9 @@ func (r *rabbitmqClient) Close() (err error) {
 }
 
 func (r *rabbitmqClient) Stop() (err error) {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+
 	if len(r.consumers) > 0 {
 		for key, chann := range r.consumers {
 			err = errors.Join(err, chann.Cancel(key.consumerName, false))
@@ -136,10 +142,12 @@ func (r *rabbitmqClient) Publish(ctx context.Context, load *pubsub.PubLoad) erro
 		return ErrDataRequired
 	}
 
+	r.lock.RLock()
 	chann, ok := r.producers[load.Topic]
 	if !ok {
 		return ErrNoProducer
 	}
+	r.lock.RUnlock()
 
 	msg := amqp.Publishing{
 		ContentType: "application/json",
@@ -165,10 +173,12 @@ func (r *rabbitmqClient) Publish(ctx context.Context, load *pubsub.PubLoad) erro
 }
 
 func (r *rabbitmqClient) Consume(ctx context.Context, load pubsub.ConLoad) (pubsub.Delivery, error) {
+	r.lock.RLock()
 	chann, ok := r.consumers[consumerKey{queueName: load.Topic, consumerName: load.ConsumerName}]
 	if !ok {
 		return nil, ErrNoConsumer
 	}
+	r.lock.RUnlock()
 
 	channelBufSize := 256
 	dest := &consumerDelivery{

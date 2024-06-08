@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
+// PubLoad is used for publishing messages.
+// It is required to have a non-empty Topic and Data.
 type PubLoad struct {
+	// Topic is the topic to publish to. Required.
 	Topic     string
 	Data      []byte
 	Offset    int64
@@ -16,7 +19,10 @@ type PubLoad struct {
 	Headers map[string][]byte
 }
 
+// ConLoad is used for consuming messages.
+// It is required to have a non-empty Topic.
 type ConLoad struct {
+	// Topic is the topic to consume from. Required.
 	Topic     string
 	Partition int32
 	// Offset is the initial offset to start consuming from. Default is [OffsetOldest].
@@ -33,20 +39,29 @@ type ConsumerMessage struct {
 	Timestamp time.Time
 }
 
-// ConsumerError is what is provided to the user when an error occurs.
-// It wraps an error and includes the topic and partition.
-type ConsumerError struct {
-	Topic     string
-	Partition int32
-	Err       error
+type Publisher interface {
+	// Publish publishes messages to the given topic.
+	// load is required to have a non-empty Topic.
+	// It safe to call from multiple goroutines.
+	Publish(ctx context.Context, load *PubLoad) error
 }
 
-func (ce ConsumerError) Error() string {
-	return fmt.Sprintf("pubcon: error while consuming %s/%d: %s", ce.Topic, ce.Partition, ce.Err)
+type Consumer interface {
+	// Consume is goroutine ready to consume messages from the given topic.
+	// It must be called at most once per topic (after client created).
+	Consume(ctx context.Context, load ConLoad) (Delivery, error)
 }
 
-func (ce ConsumerError) Unwrap() error {
-	return ce.Err
+type Client interface {
+	Publisher
+	Consumer
+
+	// Close closes the connection and cleans up resources.
+	Close() error
+
+	// Stop stops receiving messages.
+	// It must be called before Close.
+	Stop() error
 }
 
 type Delivery interface {
@@ -63,23 +78,18 @@ type Delivery interface {
 	Close() error
 }
 
-type Publisher interface {
-	Publish(ctx context.Context, load *PubLoad) error
+// ConsumerError is what is provided to the user when an error occurs.
+// It wraps an error and includes the topic and partition.
+type ConsumerError struct {
+	Topic     string
+	Partition int32
+	Err       error
 }
 
-type Consumer interface {
-	// Consume creates a new consumer on the given topic/partition.
-	Consume(ctx context.Context, load ConLoad) (Delivery, error)
+func (ce ConsumerError) Error() string {
+	return fmt.Sprintf("pubcon: error while consuming %s/%d: %s", ce.Topic, ce.Partition, ce.Err)
 }
 
-type Client interface {
-	Publisher
-	Consumer
-
-	// Close closes the connection and cleans up resources.
-	Close() error
-
-	// Stop stops receiving messages.
-	// It must be called before Close.
-	Stop() error
+func (ce ConsumerError) Unwrap() error {
+	return ce.Err
 }
